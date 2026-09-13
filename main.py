@@ -242,7 +242,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_tracker_value(
             user_id=update.effective_user.id,
             category=expense["category"],
-            tracker_value=tracker_value
+            tracker_value=tracker_value,
+            previous_value=(
+                previous[0]
+                if previous
+                else None
+            ),
+            difference=difference
         )
 
         del context.user_data["pending_expense"]

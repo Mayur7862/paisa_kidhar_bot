@@ -201,7 +201,7 @@ def save_tracker_value(
 
     conn.commit()
     conn.close()
-    
+
 def get_last_tracker_value(
     user_id,
     category
@@ -225,3 +225,30 @@ def get_last_tracker_value(
     row = cursor.fetchone()
     conn.close()
     return row
+
+def get_tracker_history(
+    user_id,
+    category
+):
+
+    conn = sqlite3.connect("paisa_kidhar.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            created_at,
+            previous_value,
+            tracker_value,
+            difference
+        FROM tracker_values
+        WHERE user_id = ?
+        AND category = ?
+        ORDER BY created_at
+    """, (
+        user_id,
+        category
+    ))
+
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
