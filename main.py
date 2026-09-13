@@ -15,7 +15,9 @@ from database import (
     get_all_expenses,
     get_expenses_by_tag,
     save_special_category,
-    get_special_category
+    get_special_category,
+    save_tracker_value,
+    get_last_tracker_value
 )
 
 from export_service import create_excel
@@ -204,9 +206,30 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # User is replying to a special category question
     if "pending_expense" in context.user_data:
 
-        tracker_value = update.message.text
+        try:
+            tracker_value = float(
+                update.message.text
+            )
+
+        except ValueError:
+            await update.message.reply_text(
+                "Please enter a number."
+            )
+            return
 
         expense = context.user_data["pending_expense"]
+
+        previous = get_last_tracker_value(
+        update.effective_user.id,
+        expense["category"]
+        )
+
+        difference = None
+        if previous:
+            difference = (
+                tracker_value -
+                previous[0]
+            )
 
         save_expense(
             user_id=update.effective_user.id,
@@ -216,11 +239,27 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             tags=expense["tags"]
         )
 
+        save_tracker_value(
+            user_id=update.effective_user.id,
+            category=expense["category"],
+            tracker_value=tracker_value
+        )
+
         del context.user_data["pending_expense"]
 
+        message = (
+            f"Added ₹{expense['amount']} "
+            f"to {expense['category']}"
+        )
+
+        if difference is not None:
+            message += (
+                f"\nDifference since last reading: "
+                f"{difference}"
+            )
+
         await update.message.reply_text(
-            f"Added ₹{expense['amount']} to {expense['category']}\n"
-            f"Tracker Value: {tracker_value}"
+            message
         )
 
         return
