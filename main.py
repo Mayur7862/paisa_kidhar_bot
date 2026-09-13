@@ -12,7 +12,8 @@ from database import (
     init_db,
     save_expense,
     get_today_expenses,
-    get_all_expenses
+    get_all_expenses,
+    get_expenses_by_tag
 )
 
 from export_service import create_excel
@@ -121,6 +122,58 @@ async def export_command( update: Update, context: ContextTypes.DEFAULT_TYPE):
     # currently, the file is deleted after sending it to the user. we switch to bytesio later and generate in memory 
     os.remove(filename)
 
+async def tag_command( update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    if len(context.args) == 0:
+
+        await update.message.reply_text(
+            "Usage: /tag goa"
+        )
+
+        return
+
+    tag = context.args[0].lower()
+
+    rows = get_expenses_by_tag(
+        update.effective_user.id,
+        tag
+    )
+
+    if not rows:
+
+        await update.message.reply_text(
+            f"No expenses found for #{tag}"
+        )
+
+        return
+
+    category_totals = {}
+    grand_total = 0
+
+    for category, amount in rows:
+
+        category_totals[category] = (
+            category_totals.get(category, 0) + amount
+        )
+
+        grand_total += amount
+
+    message = f"Tag: #{tag}\n\n"
+
+    for category, total in category_totals.items():
+
+        message += (
+            f"{category}: ₹{total}\n"
+        )
+
+    message += (
+        f"\nTotal: ₹{grand_total}"
+    )
+
+    await update.message.reply_text(
+        message
+    )
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     result = parse_expense(update.message.text)
@@ -176,6 +229,7 @@ def main():
             export_command
         )
     )
+
 
     print("Paisa Kidhar Bot Started...")
 
