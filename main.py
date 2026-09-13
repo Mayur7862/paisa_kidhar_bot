@@ -201,6 +201,30 @@ async def make_special_command( update: Update, context: ContextTypes.DEFAULT_TY
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
+    # User is replying to a special category question
+    if "pending_expense" in context.user_data:
+
+        tracker_value = update.message.text
+
+        expense = context.user_data["pending_expense"]
+
+        save_expense(
+            user_id=update.effective_user.id,
+            amount=expense["amount"],
+            category=expense["category"],
+            note=expense["note"],
+            tags=expense["tags"]
+        )
+
+        del context.user_data["pending_expense"]
+
+        await update.message.reply_text(
+            f"Added ₹{expense['amount']} to {expense['category']}\n"
+            f"Tracker Value: {tracker_value}"
+        )
+
+        return
+
     result = parse_expense(update.message.text)
 
     if result is None:
@@ -213,6 +237,24 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             "Category missing."
         )
+        return
+
+    # Check if category is special
+    special = get_special_category(
+        update.effective_user.id,
+        result["category"]
+    )
+
+    if special:
+
+        context.user_data["pending_expense"] = result
+
+        tracker_name = special[0]
+
+        await update.message.reply_text(
+            f"Enter {tracker_name}:"
+        )
+
         return
 
     save_expense(
