@@ -230,6 +230,12 @@ def main():
         )
     )
 
+    app.add_handler(
+        CommandHandler(
+            "tag",
+            tag_command
+        )
+    )
 
     print("Paisa Kidhar Bot Started...")
 
