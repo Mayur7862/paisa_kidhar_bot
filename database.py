@@ -18,6 +18,15 @@ def init_db():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS special_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        category TEXT,
+        tracker_type TEXT
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -98,3 +107,53 @@ def get_expenses_by_tag(user_id, tag):
     rows = cursor.fetchall()
     conn.close()
     return rows
+
+def save_special_category(
+    user_id,
+    category,
+    tracker_type
+):
+
+    conn = sqlite3.connect("paisa_kidhar.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO special_categories
+        (
+            user_id,
+            category,
+            tracker_type
+        )
+        VALUES (?, ?, ?)
+    """, (
+        user_id,
+        category.lower(),
+        tracker_type.lower()
+    ))
+
+    conn.commit()
+    conn.close()
+
+def get_special_category(
+    user_id,
+    category
+):
+
+    conn = sqlite3.connect("paisa_kidhar.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT tracker_type
+        FROM special_categories
+        WHERE user_id = ?
+        AND category = ?
+    """, (
+        user_id,
+        category.lower()
+    ))
+
+    row = cursor.fetchone()
+
+    conn.close()
+
+    return row
