@@ -4,7 +4,6 @@ import sqlite3
 def init_db():
 
     conn = sqlite3.connect("paisa_kidhar.db")
-
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -26,7 +25,6 @@ def init_db():
 def save_expense(user_id, amount, category, note, tags):
 
     conn = sqlite3.connect("paisa_kidhar.db")
-
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -43,3 +41,22 @@ def save_expense(user_id, amount, category, note, tags):
 
     conn.commit()
     conn.close()
+
+
+def get_today_expenses(user_id):
+
+    conn = sqlite3.connect("paisa_kidhar.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT category, amount
+        FROM expenses
+        WHERE user_id = ?
+        AND DATE(created_at) = DATE('now')
+    """, (user_id,))
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return rows
