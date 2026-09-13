@@ -27,6 +27,16 @@ def init_db():
         )
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS tracker_values (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        category TEXT,
+        tracker_value REAL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -156,4 +166,54 @@ def get_special_category(
 
     conn.close()
 
+    return row
+
+def save_tracker_value(
+    user_id,
+    category,
+    tracker_value
+):
+
+    conn = sqlite3.connect("paisa_kidhar.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO tracker_values
+        (
+            user_id,
+            category,
+            tracker_value
+        )
+        VALUES (?, ?, ?)
+    """, (
+        user_id,
+        category,
+        tracker_value
+    ))
+
+    conn.commit()
+    conn.close()
+
+def get_last_tracker_value(
+    user_id,
+    category
+):
+
+    conn = sqlite3.connect("paisa_kidhar.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT tracker_value
+        FROM tracker_values
+        WHERE user_id = ?
+        AND category = ?
+        ORDER BY id DESC
+        LIMIT 1
+    """, (
+        user_id,
+        category
+    ))
+
+    row = cursor.fetchone()
+    conn.close()
     return row
