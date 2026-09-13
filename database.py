@@ -79,3 +79,22 @@ def get_all_expenses(user_id):
     rows = cursor.fetchall()
     conn.close()
     return rows
+
+def get_expenses_by_tag(user_id, tag):
+
+    conn = sqlite3.connect("paisa_kidhar.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT category, amount
+        FROM expenses
+        WHERE user_id = ?
+        AND tags LIKE ?
+    """, (
+        user_id,
+        f"%{tag}%"
+    ))
+
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
