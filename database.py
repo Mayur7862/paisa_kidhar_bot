@@ -56,9 +56,7 @@ def get_today_expenses(user_id):
     """, (user_id,))
 
     rows = cursor.fetchall()
-
     conn.close()
-
     return rows
 
 def get_all_expenses(user_id):
@@ -79,7 +77,5 @@ def get_all_expenses(user_id):
     """, (user_id,))
 
     rows = cursor.fetchall()
-
     conn.close()
-
     return rows
