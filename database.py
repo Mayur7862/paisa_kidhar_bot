@@ -60,3 +60,26 @@ def get_today_expenses(user_id):
     conn.close()
 
     return rows
+
+def get_all_expenses(user_id):
+
+    conn = sqlite3.connect("paisa_kidhar.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            created_at,
+            amount,
+            category,
+            note,
+            tags
+        FROM expenses
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+    """, (user_id,))
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return rows
