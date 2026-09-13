@@ -1,8 +1,18 @@
 from dotenv import load_dotenv
 from telegram import Update
-from telegram.ext import Application, MessageHandler, ContextTypes, filters
+from telegram.ext import (
+    Application,
+    MessageHandler,
+    CommandHandler,
+    ContextTypes,
+    filters
+)
 
-from database import init_db, save_expense
+from database import (
+    init_db,
+    save_expense,
+    get_today_expenses
+)
 
 import os
 
@@ -34,8 +44,7 @@ def parse_expense(text):
     for word in parts[2:]:
 
         if word.startswith("#"):
-            tags.append(word[1:])  # Remove #
-
+            tags.append(word[1:])
         else:
             note_words.append(word)
 
@@ -47,6 +56,39 @@ def parse_expense(text):
         "note": note,
         "tags": tags
     }
+
+
+async def today_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    rows = get_today_expenses(
+        update.effective_user.id
+    )
+
+    if not rows:
+        await update.message.reply_text(
+            "No expenses logged today."
+        )
+        return
+
+    category_totals = {}
+    grand_total = 0
+
+    for category, amount in rows:
+
+        category_totals[category] = (
+            category_totals.get(category, 0) + amount
+        )
+
+        grand_total += amount
+
+    message = "Today's Spending\n\n"
+
+    for category, total in category_totals.items():
+        message += f"{category}: ₹{total}\n"
+
+    message += f"\nTotal: ₹{grand_total}"
+
+    await update.message.reply_text(message)
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -65,7 +107,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # Save expense in SQLite
     save_expense(
         user_id=update.effective_user.id,
         amount=result["amount"],
@@ -81,10 +122,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
 
-    # Create DB/table if not present
     init_db()
 
     app = Application.builder().token(BOT_TOKEN).build()
+
+    app.add_handler(
+        CommandHandler(
+            "today",
+            today_command
+        )
+    )
 
     app.add_handler(
         MessageHandler(
