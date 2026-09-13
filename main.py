@@ -17,7 +17,9 @@ from database import (
     save_special_category,
     get_special_category,
     save_tracker_value,
-    get_last_tracker_value
+    get_last_tracker_value,
+    get_special_categories,
+    get_tracker_history
 )
 
 from export_service import create_excel
@@ -112,8 +114,26 @@ async def export_command( update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     filename = "expenses.xlsx"
 
+    special_data = {}
+
+    special_categories = get_special_categories(
+        update.effective_user.id
+    )
+
+    for category_row in special_categories:
+
+        category = category_row[0]
+
+        history = get_tracker_history(
+            update.effective_user.id,
+            category
+        )
+
+        special_data[category] = history
+
     create_excel(
         rows,
+        special_data,
         filename
     )
 

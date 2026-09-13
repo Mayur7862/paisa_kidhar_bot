@@ -252,3 +252,18 @@ def get_tracker_history(
     rows = cursor.fetchall()
     conn.close()
     return rows
+
+def get_special_categories(user_id):
+
+    conn = sqlite3.connect("paisa_kidhar.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT category
+        FROM special_categories
+        WHERE user_id = ?
+    """, (user_id,))
+
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
