@@ -173,7 +173,9 @@ def get_special_category(
 def save_tracker_value(
     user_id,
     category,
-    tracker_value
+    tracker_value,
+    previous_value,
+    difference
 ):
 
     conn = sqlite3.connect("paisa_kidhar.db")
@@ -184,18 +186,22 @@ def save_tracker_value(
         (
             user_id,
             category,
-            tracker_value
+            tracker_value,
+            previous_value,
+            difference
         )
-        VALUES (?, ?, ?)
+        VALUES (?, ?, ?, ?, ?)
     """, (
         user_id,
         category,
-        tracker_value
+        tracker_value,
+        previous_value,
+        difference
     ))
 
     conn.commit()
     conn.close()
-
+    
 def get_last_tracker_value(
     user_id,
     category
