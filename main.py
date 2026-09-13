@@ -11,8 +11,11 @@ from telegram.ext import (
 from database import (
     init_db,
     save_expense,
-    get_today_expenses
+    get_today_expenses,
+    get_all_expenses
 )
+
+from export_service import create_excel
 
 import os
 
@@ -90,6 +93,31 @@ async def today_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(message)
 
+async def export_command( update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    rows = get_all_expenses(
+        update.effective_user.id
+    )
+
+    if not rows:
+        await update.message.reply_text(
+            "No expenses found."
+        )
+        return
+
+    filename = "expenses.xlsx"
+
+    create_excel(
+        rows,
+        filename
+    )
+
+    with open(filename, "rb") as file:
+
+        await update.message.reply_document(
+            document=file,
+            filename=filename
+        )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -137,6 +165,13 @@ def main():
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,
             handle_message
+        )
+    )
+
+    app.add_handler(
+        CommandHandler(
+            "export",
+            export_command
         )
     )
 
