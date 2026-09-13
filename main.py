@@ -118,6 +118,8 @@ async def export_command( update: Update, context: ContextTypes.DEFAULT_TYPE):
             document=file,
             filename=filename
         )
+    # currently, the file is deleted after sending it to the user. we switch to bytesio later and generate in memory 
+    os.remove(filename)
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
