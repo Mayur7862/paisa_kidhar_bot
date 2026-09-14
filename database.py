@@ -1,5 +1,7 @@
 import sqlite3
 
+from datetime import datetime, timedelta
+
 
 def init_db():
 
@@ -267,3 +269,113 @@ def get_special_categories(user_id):
     rows = cursor.fetchall()
     conn.close()
     return rows
+
+def get_category_summary(user_id, category):
+
+    today = datetime.now().date()
+
+    week_start = today - timedelta(days=today.weekday())
+
+    month_start = today.replace(day=1)
+
+    conn = sqlite3.connect("paisa_kidhar.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT COALESCE(SUM(amount), 0)
+        FROM expenses
+        WHERE user_id = ?
+        AND category = ?
+        AND DATE(created_at) = ?
+    """, (
+        user_id,
+        category,
+        str(today)
+    ))
+    today_total = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT COALESCE(SUM(amount), 0)
+        FROM expenses
+        WHERE user_id = ?
+        AND category = ?
+        AND DATE(created_at) >= ?
+    """, (
+        user_id,
+        category,
+        str(week_start)
+    ))
+    week_total = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT COALESCE(SUM(amount), 0)
+        FROM expenses
+        WHERE user_id = ?
+        AND category = ?
+        AND DATE(created_at) >= ?
+    """, (
+        user_id,
+        category,
+        str(month_start)
+    ))
+    month_total = cursor.fetchone()[0]
+
+    conn.close()
+
+    return {
+        "today": today_total,
+        "week": week_total,
+        "month": month_total
+    }
+
+def get_overall_summary(user_id):
+
+    today = datetime.now().date()
+
+    week_start = today - timedelta(days=today.weekday())
+
+    month_start = today.replace(day=1)
+
+    conn = sqlite3.connect("paisa_kidhar.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT COALESCE(SUM(amount), 0)
+        FROM expenses
+        WHERE user_id = ?
+        AND DATE(created_at) = ?
+    """, (
+        user_id,
+        str(today)
+    ))
+    today_total = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT COALESCE(SUM(amount), 0)
+        FROM expenses
+        WHERE user_id = ?
+        AND DATE(created_at) >= ?
+    """, (
+        user_id,
+        str(week_start)
+    ))
+    week_total = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT COALESCE(SUM(amount), 0)
+        FROM expenses
+        WHERE user_id = ?
+        AND DATE(created_at) >= ?
+    """, (
+        user_id,
+        str(month_start)
+    ))
+    month_total = cursor.fetchone()[0]
+
+    conn.close()
+
+    return {
+        "today": today_total,
+        "week": week_total,
+        "month": month_total
+    }
