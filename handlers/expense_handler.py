@@ -15,7 +15,7 @@ from database import (
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    # User is replying to a special category tracker question
+    # Special category follow-up
     if "pending_expense" in context.user_data:
 
         try:
@@ -37,6 +37,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         difference = None
 
         if previous:
+
             if tracker_value < previous[0]:
 
                 await update.message.reply_text(
@@ -47,7 +48,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             difference = tracker_value - previous[0]
 
-        # Save expense
         save_expense(
             user_id=update.effective_user.id,
             amount=expense["amount"],
@@ -56,7 +56,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             tags=expense["tags"]
         )
 
-        # Save tracker data
         save_tracker_value(
             user_id=update.effective_user.id,
             category=expense["category"],
@@ -81,22 +80,36 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         message = (
-            f"✅ Added ₹{expense['amount']} to {expense['category']}\n\n"
-            f"{expense['category'].title()}\n"
-            f"Today: ₹{category_stats['today']}\n"
-            f"This Week: ₹{category_stats['week']}\n"
-            f"This Month: ₹{category_stats['month']}\n\n"
-            f"Overall\n"
-            f"Today: ₹{overall_stats['today']}\n"
-            f"This Week: ₹{overall_stats['week']}\n"
-            f"This Month: ₹{overall_stats['month']}"
+            f"✅ Added ₹{expense['amount']} to {expense['category'].title()}"
         )
 
-        if difference is not None:
+        if previous:
+
             message += (
-                f"\n\nDifference Since Last Reading: "
-                f"{difference}"
+                f"\n\n📊 Tracker"
+                f"\n• Previous: {previous[0]}"
+                f"\n• Current: {tracker_value}"
+                f"\n• Difference: {difference}"
             )
+
+        else:
+
+            message += (
+                f"\n\n📊 Tracker"
+                f"\n• Current: {tracker_value}"
+                f"\n• First reading recorded"
+            )
+
+        message += (
+            f"\n\n📂 {expense['category'].title()}"
+            f"\n• Today: ₹{category_stats['today']}"
+            f"\n• This Week: ₹{category_stats['week']}"
+            f"\n• This Month: ₹{category_stats['month']}"
+            f"\n\n💰 Overall"
+            f"\n• Today: ₹{overall_stats['today']}"
+            f"\n• This Week: ₹{overall_stats['week']}"
+            f"\n• This Month: ₹{overall_stats['month']}"
+        )
 
         await update.message.reply_text(message)
 
@@ -117,7 +130,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # Check if category is special
     special = get_special_category(
         update.effective_user.id,
         result["category"]
@@ -135,7 +147,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         return
 
-    # Save normal expense
     save_expense(
         user_id=update.effective_user.id,
         amount=result["amount"],
@@ -154,15 +165,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     message = (
-        f"✅ Added ₹{result['amount']} to {result['category']}\n\n"
-        f"{result['category'].title()}\n"
-        f"Today: ₹{category_stats['today']}\n"
-        f"This Week: ₹{category_stats['week']}\n"
-        f"This Month: ₹{category_stats['month']}\n\n"
-        f"Overall\n"
-        f"Today: ₹{overall_stats['today']}\n"
-        f"This Week: ₹{overall_stats['week']}\n"
-        f"This Month: ₹{overall_stats['month']}"
+        f"✅ Added ₹{result['amount']} to {result['category'].title()}"
+        f"\n\n📂 {result['category'].title()}"
+        f"\n• Today: ₹{category_stats['today']}"
+        f"\n• This Week: ₹{category_stats['week']}"
+        f"\n• This Month: ₹{category_stats['month']}"
+        f"\n\n💰 Overall"
+        f"\n• Today: ₹{overall_stats['today']}"
+        f"\n• This Week: ₹{overall_stats['week']}"
+        f"\n• This Month: ₹{overall_stats['month']}"
     )
 
     await update.message.reply_text(message)
