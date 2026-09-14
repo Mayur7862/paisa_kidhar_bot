@@ -37,6 +37,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         difference = None
 
         if previous:
+            if tracker_value < previous[0]:
+
+                await update.message.reply_text(
+                    f"Value cannot be smaller than the previous reading ({previous[0]}).\nPlease enter a valid value."
+                )
+
+                return
+
             difference = tracker_value - previous[0]
 
         # Save expense
